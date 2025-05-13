@@ -131,7 +131,7 @@ namespace work.ctrl3d.SOKit
             return createResult.Success switch
             {
                 false => createResult,
-                _ => Save(createResult.Object, folderPath, assetName)
+                _ => Save(createResult.Data, folderPath, assetName)
             };
         }
 
@@ -401,7 +401,7 @@ namespace work.ctrl3d.SOKit
             if (!createResult.Success)
                 return createResult;
 
-            return await SaveAsync(createResult.Object, folderPath, assetName);
+            return await SaveAsync(createResult.Data, folderPath, assetName);
         }
 
         /// <summary>
@@ -600,9 +600,9 @@ namespace work.ctrl3d.SOKit
             var successfulAssets = new List<T>();
             foreach (var result in results)
             {
-                if (result.Success && result.Object != null)
+                if (result.Success && result.Data != null)
                 {
-                    successfulAssets.Add(result.Object);
+                    successfulAssets.Add(result.Data);
                 }
             }
 
@@ -628,14 +628,14 @@ namespace work.ctrl3d.SOKit
             {
                 var result = await LoadAsync<T>(assetPaths[i]);
 
-                if (result.Success && result.Object != null)
+                if (result.Success && result.Data != null)
                 {
                     if (action != null)
                     {
-                        await action(result.Object);
+                        await action(result.Data);
                     }
 
-                    assets.Add(result.Object);
+                    assets.Add(result.Data);
                 }
 
                 // 진행 상황 보고

@@ -15,7 +15,7 @@ namespace work.ctrl3d.SOKit
         /// <summary>
         /// ScriptableObject 인스턴스 (성공 시)
         /// </summary>
-        public readonly T Object;
+        public readonly T Data;
         
         /// <summary>
         /// 오류 메시지 (실패 시)
@@ -33,7 +33,7 @@ namespace work.ctrl3d.SOKit
         public SOResult(T obj, string assetPath = null)
         {
             Success = true;
-            Object = obj;
+            Data = obj;
             ErrorMessage = null;
             AssetPath = assetPath;
         }
@@ -44,7 +44,7 @@ namespace work.ctrl3d.SOKit
         public SOResult(string errorMessage)
         {
             Success = false;
-            Object = null;
+            Data = null;
             ErrorMessage = errorMessage;
             AssetPath = null;
         }
