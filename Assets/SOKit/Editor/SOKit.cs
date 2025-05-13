@@ -76,7 +76,7 @@ namespace work.ctrl3d.SOKit
                 var assetPath = $"{folderPath}/{assetName}.asset";
 
                 // 이미 에셋이 존재하는지 확인
-                if (AssetExists(assetPath))
+                if (HasAsset(assetPath))
                 {
                     // 이미 존재하는 에셋 가져오기
                     var existingAsset = AssetDatabase.LoadAssetAtPath<T>(assetPath);
@@ -177,9 +177,19 @@ namespace work.ctrl3d.SOKit
         /// </summary>
         /// <param name="assetPath">확인할 에셋 경로</param>
         /// <returns>에셋 존재 여부</returns>
-        public static bool AssetExists(string assetPath)
+        public static bool HasAsset(string assetPath)
         {
             return File.Exists(assetPath) && AssetDatabase.LoadAssetAtPath<Object>(assetPath) is not null;
+        }
+
+        public static bool HasAsset(string folderPath, string assetName)
+        {
+            if (!assetName.EndsWith(".asset", StringComparison.OrdinalIgnoreCase))
+            {
+                assetName += ".asset";
+            }
+
+            return HasAsset(Path.Combine(folderPath, assetName));
         }
 
         /// <summary>
@@ -201,7 +211,7 @@ namespace work.ctrl3d.SOKit
                 var assetPath = $"{folderPath}/{assetName}.asset";
 
                 // 에셋이 존재하면 로드, 존재하지 않으면 생성 및 저장
-                return AssetExists(assetPath)
+                return HasAsset(assetPath)
                     ? Load<T>(assetPath)
                     :
                     // 
@@ -230,7 +240,7 @@ namespace work.ctrl3d.SOKit
                 if (string.IsNullOrEmpty(assetPath))
                     return (false, "삭제할 에셋 경로가 비어 있습니다.");
 
-                if (!AssetExists(assetPath))
+                if (!HasAsset(assetPath))
                     return (false, $"삭제할 에셋이 존재하지 않습니다: {assetPath}");
 
                 bool result = AssetDatabase.DeleteAsset(assetPath);
@@ -318,7 +328,7 @@ namespace work.ctrl3d.SOKit
             {
                 if (so is null)
                     return new SOResult<T>($"The {typeof(T).Name} instance to save is null.");
-                
+
                 // 에셋 이름이 지정되지 않은 경우 타입 이름 사용
                 if (string.IsNullOrEmpty(assetName))
                     assetName = typeof(T).Name;
@@ -333,7 +343,7 @@ namespace work.ctrl3d.SOKit
                 var assetPath = $"{folderPath}/{assetName}.asset";
 
                 // 이미 에셋이 존재하는지 확인
-                if (await AssetExistsAsync(assetPath))
+                if (await HasAssetAsync(assetPath))
                 {
                     // 이미 존재하는 에셋 가져오기
                     await UniTask.SwitchToMainThread();
@@ -441,16 +451,26 @@ namespace work.ctrl3d.SOKit
         /// </summary>
         /// <param name="assetPath">확인할 에셋 경로</param>
         /// <returns>에셋 존재 여부</returns>
-        public static async UniTask<bool> AssetExistsAsync(string assetPath)
+        public static async UniTask<bool> HasAssetAsync(string assetPath)
         {
-            bool fileExists = await UniTask.RunOnThreadPool(() => File.Exists(assetPath));
+            var fileExists = await UniTask.RunOnThreadPool(() => File.Exists(assetPath));
 
             if (!fileExists)
                 return false;
 
             await UniTask.SwitchToMainThread();
             var asset = AssetDatabase.LoadAssetAtPath<Object>(assetPath);
-            return asset != null;
+            return asset is not null;
+        }
+
+        public static async UniTask<bool> HasAssetAsync(string folderPath, string assetName)
+        {
+            if (!assetName.EndsWith(".asset", StringComparison.OrdinalIgnoreCase))
+            {
+                assetName += ".asset";
+            }
+            var assetPath = Path.Combine(folderPath, assetName);
+            return await HasAssetAsync(assetPath);
         }
 
         /// <summary>
@@ -473,7 +493,7 @@ namespace work.ctrl3d.SOKit
                 var assetPath = $"{folderPath}/{assetName}.asset";
 
                 // 에셋이 존재하면 로드
-                if (await AssetExistsAsync(assetPath))
+                if (await HasAssetAsync(assetPath))
                     return await LoadAsync<T>(assetPath);
 
                 // 존재하지 않으면 생성 및 저장
@@ -502,7 +522,7 @@ namespace work.ctrl3d.SOKit
                 if (string.IsNullOrEmpty(assetPath))
                     return (false, "The path to the asset to be deleted is empty.");
 
-                var exists = await AssetExistsAsync(assetPath);
+                var exists = await HasAssetAsync(assetPath);
                 if (!exists)
                     return (false, $"삭제할 에셋이 존재하지 않습니다: {assetPath}");
 
