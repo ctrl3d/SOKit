@@ -18,6 +18,34 @@ namespace work.ctrl3d.SOKit
         /// </summary>
         public static bool EnableLogging { get; set; } = true;
 
+        /// <summary>
+        /// 에셋 이름에 .asset 확장자가 없는 경우에만 추가합니다.
+        /// </summary>
+        /// <param name="assetName">에셋 이름</param>
+        /// <returns>확장자가 추가된 에셋 이름</returns>
+        private static string EnsureAssetExtension(string assetName)
+        {
+            if (string.IsNullOrEmpty(assetName))
+                return assetName;
+        
+            return assetName.EndsWith(".asset", StringComparison.OrdinalIgnoreCase)
+                ? assetName
+                : $"{assetName}.asset";
+        }
+        
+        /// <summary>
+        /// 에셋 경로를 생성합니다.
+        /// </summary>
+        /// <param name="folderPath">폴더 경로</param>
+        /// <param name="assetName">에셋 이름</param>
+        /// <returns>완성된 에셋 경로</returns>
+        private static string CreateAssetPath(string folderPath, string assetName)
+        {
+            return $"{folderPath}/{EnsureAssetExtension(assetName)}";
+        }
+
+
+        
         #region Sync methods
 
         /// <summary>
@@ -71,9 +99,8 @@ namespace work.ctrl3d.SOKit
                 // 폴더가 없으면 생성
                 if (!Directory.Exists(folderPath))
                     Directory.CreateDirectory(folderPath);
-
-                // 에셋으로 저장
-                var assetPath = $"{folderPath}/{assetName}.asset";
+                
+                var assetPath = CreateAssetPath(folderPath, assetName);
 
                 // 이미 에셋이 존재하는지 확인
                 if (HasAsset(assetPath))
@@ -204,12 +231,7 @@ namespace work.ctrl3d.SOKit
 
         public static bool HasAsset(string folderPath, string assetName)
         {
-            if (!assetName.EndsWith(".asset", StringComparison.OrdinalIgnoreCase))
-            {
-                assetName += ".asset";
-            }
-
-            return HasAsset(Path.Combine(folderPath, assetName));
+            return HasAsset(Path.Combine(folderPath, EnsureAssetExtension(assetName)));
         }
 
         /// <summary>
@@ -228,7 +250,7 @@ namespace work.ctrl3d.SOKit
                 if (string.IsNullOrEmpty(assetName))
                     assetName = typeof(T).Name;
 
-                var assetPath = $"{folderPath}/{assetName}.asset";
+                var assetPath = CreateAssetPath(folderPath, assetName);
 
                 // 에셋이 존재하면 로드, 존재하지 않으면 생성 및 저장
                 return HasAsset(assetPath)
@@ -300,7 +322,7 @@ namespace work.ctrl3d.SOKit
                 if (string.IsNullOrEmpty(assetName))
                     return (false, "에셋 이름이 지정되지 않았습니다.");
 
-                var assetPath = $"{folderPath}/{assetName}.asset";
+                var assetPath = CreateAssetPath(folderPath, assetName);
                 return DeleteAsset(assetPath);
             }
             catch (Exception ex)
@@ -358,9 +380,8 @@ namespace work.ctrl3d.SOKit
                 {
                     await UniTask.RunOnThreadPool(() => Directory.CreateDirectory(folderPath));
                 }
-
-                // 에셋으로 저장 (메인 스레드에서 실행)
-                var assetPath = $"{folderPath}/{assetName}.asset";
+                
+                var assetPath = CreateAssetPath(folderPath, assetName);
 
                 // 이미 에셋이 존재하는지 확인
                 if (await HasAssetAsync(assetPath))
@@ -497,12 +518,7 @@ namespace work.ctrl3d.SOKit
 
         public static async UniTask<bool> HasAssetAsync(string folderPath, string assetName)
         {
-            if (!assetName.EndsWith(".asset", StringComparison.OrdinalIgnoreCase))
-            {
-                assetName += ".asset";
-            }
-
-            var assetPath = Path.Combine(folderPath, assetName);
+            var assetPath = CreateAssetPath(folderPath, assetName);
             return await HasAssetAsync(assetPath);
         }
 
@@ -523,7 +539,7 @@ namespace work.ctrl3d.SOKit
                 if (string.IsNullOrEmpty(assetName))
                     assetName = typeof(T).Name;
 
-                var assetPath = $"{folderPath}/{assetName}.asset";
+                var assetPath = CreateAssetPath(folderPath, assetName);
 
                 // 에셋이 존재하면 로드
                 if (await HasAssetAsync(assetPath))
@@ -597,7 +613,7 @@ namespace work.ctrl3d.SOKit
                 if (string.IsNullOrEmpty(assetName))
                     return (false, "에셋 이름이 지정되지 않았습니다.");
 
-                var assetPath = $"{folderPath}/{assetName}.asset";
+                var assetPath = CreateAssetPath(folderPath, assetName);
                 return await DeleteAssetAsync(assetPath);
             }
             catch (Exception ex)
