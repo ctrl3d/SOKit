@@ -121,12 +121,32 @@ namespace work.ctrl3d.SOKit
         /// ScriptableObject를 생성하고 에셋으로 저장합니다.
         /// </summary>
         /// <typeparam name="T">생성 및 저장할 ScriptableObject 타입</typeparam>
-        /// <param name="folderPath">저장 폴더 경로 (기본값: "Assets/Resources")</param>
+        /// <param name="folderPath">저장 폴더 경로</param>
         /// <param name="assetName">에셋 이름 (기본값: null - 타입 이름 사용)</param>
         /// <returns>생성 및 저장 결과</returns>
-        public static SOResult<T> CreateAndSave<T>(string folderPath = "Assets/Resources", string assetName = null)
+        public static SOResult<T> CreateAndSave<T>(string folderPath, string assetName)
             where T : ScriptableObject
         {
+            var createResult = Create<T>();
+            return createResult.Success switch
+            {
+                false => createResult,
+                _ => Save(createResult.Data, folderPath, assetName)
+            };
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="assetPath"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static SOResult<T> CreateAndSave<T>(string assetPath)
+            where T : ScriptableObject
+        {
+            var folderPath = Path.GetDirectoryName(assetPath);
+            var assetName = Path.GetFileName(assetPath);
+
             var createResult = Create<T>();
             return createResult.Success switch
             {
@@ -390,13 +410,25 @@ namespace work.ctrl3d.SOKit
         /// ScriptableObject를 생성하고 에셋으로 비동기적으로 저장합니다.
         /// </summary>
         /// <typeparam name="T">생성 및 저장할 ScriptableObject 타입</typeparam>
-        /// <param name="folderPath">저장 폴더 경로 (기본값: "Assets/Resources")</param>
-        /// <param name="assetName">에셋 이름 (기본값: null - 타입 이름 사용)</param>
+        /// <param name="folderPath">저장 폴더 경로</param>
+        /// <param name="assetName">에셋 이름</param>
         /// <returns>생성 및 저장 결과</returns>
-        public static async UniTask<SOResult<T>> CreateAndSaveAsync<T>(string folderPath = "Assets/Resources",
-            string assetName = null)
+        public static async UniTask<SOResult<T>> CreateAndSaveAsync<T>(string folderPath, string assetName)
             where T : ScriptableObject
         {
+            var createResult = await CreateAsync<T>();
+            if (!createResult.Success)
+                return createResult;
+
+            return await SaveAsync(createResult.Data, folderPath, assetName);
+        }
+
+        public static async UniTask<SOResult<T>> CreateAndSaveAsync<T>(string assetPath)
+            where T : ScriptableObject
+        {
+            var folderPath = Path.GetDirectoryName(assetPath);
+            var assetName = Path.GetFileName(assetPath);
+
             var createResult = await CreateAsync<T>();
             if (!createResult.Success)
                 return createResult;
@@ -469,6 +501,7 @@ namespace work.ctrl3d.SOKit
             {
                 assetName += ".asset";
             }
+
             var assetPath = Path.Combine(folderPath, assetName);
             return await HasAssetAsync(assetPath);
         }
