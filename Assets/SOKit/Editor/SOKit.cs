@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+#if UNITASK_SUPPORT
 using Cysharp.Threading.Tasks;
+#endif
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
